@@ -1,15 +1,24 @@
 /* eslint-disable prettier/prettier */
-import { Product } from './../products/product.model';
+import { Product } from './product.model';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 @Injectable()
-export class CourseRepository {
+export class ProductRepository {
   constructor(
     @InjectModel('Product')
     public readonly productModel: Model<Product>,
   ) {}
+
+  createProduct(title: string, desc: string, price: number):Product{
+    const newProduct = new this.productModel({
+      title,
+      description: desc,
+      price,
+    });
+    return newProduct
+  }
 
   async findAll(): Promise<Product[]> {
     return this.productModel.find().exec();

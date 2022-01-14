@@ -1,32 +1,23 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Product } from './product.model';
-import { Model } from 'mongoose';
-import { CourseRepository } from 'src/repository/product.repository';
+import { ProductRepository } from 'src/products/product.repository';
 @Injectable()
 export class ProductsService {
 
   constructor(
-    @InjectModel('Product') private readonly productModel: Model<Product>,
-    private readonly courseRepository: CourseRepository
+    private readonly productRepository: ProductRepository
   ) {}
  
   async insertProduct(title: string, desc: string, price: number) {
-    
-    const newProduct = new this.productModel({
-      title,
-      description: desc,
-      price,
-    });
-    const result = await this.courseRepository.saveToDb(newProduct);
+    const newProduct = this.productRepository.createProduct(title, desc, price)
+    const result = await this.productRepository.saveToDb(newProduct);
     console.log(result);
     return result.id as string;
   }
 
   // pour avoir tous les produits
   async getProduct() {
-    const products = await this.courseRepository.findAll()
+    const products = await this.productRepository.findAll()
     console.log(products);
     return products.map((prod) => ({
       id: prod.id,
@@ -38,7 +29,7 @@ export class ProductsService {
 
   // pour avoir un produits
   async getSingleProduct(productId: string) {
-    const product = await this.courseRepository.findOne(productId);
+    const product = await this.productRepository.findOne(productId);
     return {
       id: product.id,
       title: product.title,
@@ -54,7 +45,7 @@ export class ProductsService {
     desc: string,
     price: number,
   ) {
-    const updateProduct = await this.courseRepository.findOne(productId);
+    const updateProduct = await this.productRepository.findOne(productId);
     if (title) {
       updateProduct.title = title;
     }
@@ -64,12 +55,12 @@ export class ProductsService {
     if (price) {
       updateProduct.price = price;
     }
-    this.courseRepository.saveToDb(updateProduct)
+    this.productRepository.saveToDb(updateProduct)
   }
 
   // pour supprimer un produit
   async deleteProduct(id: string) {
-    const result = await this.courseRepository.deleteOne(id)
+    const result = await this.productRepository.deleteOne(id)
     if (result === null) {
       throw new NotFoundException('Aucun produit trouver');
     }
